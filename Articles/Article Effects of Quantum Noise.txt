@@ -1,0 +1,15 @@
+Article: Effects of Quantum Noise on Quantum Approximate Optimization Algorithm
+
+Abstract:
+Effects on QAOA from typical quantum noise channels, and several numerical results. The cost function obtained from QAOA (output state fidelity), decreases exponentially with respect to the number of gates and noise strength. when noise is not serious, the optimized parameters will not deviate from their ideal values. Our result provides evidence for the effectiveness of hybrid algorithms running on NISQ (noisy-intermediate-scale quantum) devices.
+
+Body:
+We analyze the effects of quantum noise on various aspects of QAOA, including the fidelity of its output state, its cost function, and its parameter optimization. We find that QAOA is noise tolerant, although the QAOA parameter space is somewhat flattened by noise. To demonstrate our conclusion, we choose three different quantum noise channels, testing the effects of each on the QAOA by means of numerical simulations.
+
+In our numerical simulations, we choose three quantum noise channels: dephasing, bit flip, and depolarizing channels. 
+
+Conclusion:
+
+For a specific QAOA quantum circuit, the relations between quantum noise parameter 𝑝 and the output state fidelity 𝐹 and 𝐺 are exponentialy
+For a specific QAOA quantum circuit, the relationship between quantum noise parameter 𝑝 and the cost function is also exponentially 
+QAOA is a noise tolerant algorithm, when (1 − 𝑝) ^{𝛼𝑁} is large enough, for both noisy and ideal QAOA cost functions, the optimized QAOA parameters being virtually the same.

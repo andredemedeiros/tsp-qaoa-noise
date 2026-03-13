@@ -1,0 +1,50 @@
+Article: Solving the Traveling Salesman Problem via Different Quantum Computing Architectures.
+Subject: Solving TSP, Quantum simulations, optical/optoelectronic computing, quantum computing techniques for TSP
+
+Abstract:
+Study the application of emerging photonic and quantum computing architectures
+TSP: NP-Hard optimization problem by approaches:
+	Simulated Annealing (SA), Quadratic Unconstrained Binary Optimization (QUBO) -> quantum annealers
+	Optical Coherent Ising Machines, QAOA and QPE -> Gate-based Quantum Computers
+
+Gate-based quantum computers, real quantum computers -> max. 6 nodes
+Ising-based archtectures -> 12 nodes
+Entropy computing implemented in hybrid optoelectronic components -> 18 nodes
+Nevertheless, the solutions tendnto be suboptimal due to hardware limitations and challenges in achieving ground state convergence as the problem size increases.
+Insing machines demonstrate significant time advantages over classical methods, making them a promising candidate for solving larger-scale TSPs.
+
+The TSP Formulation for Gate Based Quantum Computing:
+-QAOA Formulation: The quantum approximate optimization algorithm is a hybrid quantum-classical variational algorithm designed to tackle combinatorial optimization problems
+	The performance of the QAOA on MaxCut problems has revealed its ability to exploit non-adiabatic operations. In scenarios adiabatic, QAOA method is better than quantum annealing, this last, due to small spectral gap between the ground state and excited states. QAOA can learn via optimization to utilize nonadiabatic mechanisms to circumvent the challenges associated with vanish spectral gaps.
+	For combinational optimization, the quantum approximate optm. algo. briefly had better approximation ratio than any know polynomial time classical algorithm.
+	Use of unitary operators dependent on 2p angles, p>1. These operators are itereatively applied on a state that is an equal weighted quantums superposition of all possible states in the computational basis and the cost funcrion fq is calculated. After iterations, fq is almost optimal, and the state beign measured is close to being optimal as well.
+	Generalization of the QAOA process is an alternating application of a continuous-time quantum walk on an underlying graoh followed by a quality-dependent pahse shift applied to each solution state QWOA.
+	Solutions to the TSP using Universal gates based processors, can be explored by formulations of the QOAO. Most known ways to formulate the TSP rely on defining the problem as a QUBO problem and then converting to a QAOA.
+	In this sense, for a given cost function fc(x): B^n -> R, an approx. algo. for maximization find a string x, such that achieves a desired approx. ratio r: fc(x)/fcmax >= r. Where fcmax is the true maximum.
+	The QAOA algo. : 1) prepare the initial state with superposition of all possible combinational basis states and apply Hadamard 2) define a hamiltonian Hc that encodes the optimization problems objective function 3) Define a mixer hamiltonian Hb that facilitates transitions between basis states 4) exponentiate and parameterize: apply the problem hamiltonian and mixer hamiltonian alternately in p layers. each layer is parametrized by 2 angles phi and beta 5) optimize parameters with a classical optimization algo to adjust the 2p parameters, phi and beta. Fine-tuning the Ry angle values is absolutely essential to ensure accurate solutions. 
+	For 4 nodes TSP, 16-qubit circuit is initialized, the qubit requirement scales as N^2. The values pass through a quantum a quantum circuit with a depth of 6 layers. Therefore there are 96 angles serving as hyperparameters for optimization. 
+	Limitation: classical optimization step introduces a time bottleneck. QAOA cannot ensure polynomial time complexity due to the reliance on classical hyperparameter optimization.
+
+-QPE (Quantum Phase Estimation Algorithm) Formulation: extracts the phase theta associated with an eigenvalue of a unitary operator U. Specifically, if U |psi> = e^2*pi*i*theta |psi>. QPE estimates the phase theta with n-bit precision. The QPE circuit operates on two registers: the upper register of n qubits, initialized in 0^n, is used for phase estimation, and the lower register is initialized in the eigenstate |psi> of U, such that U |psi> = 2^2*pi*i*theta |psi>.
+	Steps of QPE: 1) Apply Hadamard gates on all qubits of the upper register to create a superposition state 2) apply controlled-U^2^j operations, j corresponds to each qubit in the upper register 3) apply the inverse Quantum Fourier Transform (QFT) on the upper register to extract the phase theta. The final state of the upper register encodes the binary representation of theta.
+	In its simplest, form, the QPE cricuit operates on two registers of qubits. The lower register ins repreatedly acted on by a controlled-U operator, where the control qubits are in the upper register. 
+	Figure 5, circuit block to a 16-qubit case
+	To encode arbiritary distance matrix to a format suitable for the QPE algo.: normalize distances between 0 and 1 represented by euler phase angles (0 - 2pi)
+	Advantage compared to QAOA: for a problem of size n, n log n qbit requirement in case QPE, n^2 in case of QAOA.
+
+*Real quantum computers are prone to errors due to noise, Fig. 7, while the simultarion results yield more accurate results, Fig. 6. IBM QASM Simulator x IBM Brisbane Quantum Computer
+
+*NISQ gate-based quantum computers are not yet sufficiently advanced for fault tolerance or large enough to achieve quantum advantage
+
+*To obtain reliable outputs from universal gate-based quantum computers in the NISQ era, quantum error correction or error mitigation techniques are essential => alternative computing architectures, ex. Ising-type simulators and hardware
+
+TSP Formulation for Ising Type Simulators and harwdware:
+
+Ising and QUBO models
+TSP formulation for simulated annealing
+	-Hamiltonian formulation for Simulated Annealing,  Solution for a 6 city TSP using Simulated Annealing.
+Experimental Observations for Adiabatic Quantum computers
+	-Hamiltonian formulation for the D-Wave platforms, Constraints, Normalization,  Hardware architecture, Solution for an 8 node TSP solved by the Dwave
+machines
+Experimental Observations for Optical Ising computers
+	-Hamiltonian formulation on the QCi Dirac platforms, Subtour Elimination Constraints, Additional Constraints, Hardware architecture, Solution for an 18 node TSP
