@@ -1,0 +1,7 @@
+# requirements.txt para tsp-qaoa-noise
+qiskit>=0.45.1
+qiskit-optimization>=0.5.1
+mpqp>=0.2.0
+matplotlib
+numpy
+scipy
