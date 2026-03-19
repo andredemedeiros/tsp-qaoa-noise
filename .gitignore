@@ -1,1 +1,6 @@
 Examples/
+
+venv/
+
+Src/.ipynb_checkpoints/
+
