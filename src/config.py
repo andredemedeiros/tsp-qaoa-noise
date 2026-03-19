@@ -1,0 +1,7 @@
+N_CITIES = 3
+QAOA_P = 1
+SHOTS = 1024
+SEED = 42
+
+A = 15.0
+B = 1.0
