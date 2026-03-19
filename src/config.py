@@ -1,6 +1,8 @@
 N_CITIES = 3
+#QAOA_P = 2
 QAOA_P = 1
-SHOTS = 1024
+#SHOTS = 1024
+SHOTS = 512
 SEED = 42
 
 A = 15.0
