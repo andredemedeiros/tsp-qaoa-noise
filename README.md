@@ -50,7 +50,7 @@ tsp-qaoa-noise/
 │   │
 │   ├── qaoa/
 │   │   └── solver.py         # QAOA solver
-│   │
+│   │   └── circuit.py        # Circuit creation
 │   ├── noise/
 │   │   └── models.py         # Noise models
 │   │
