@@ -5,63 +5,18 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from tsp.instance import TSPInstance
 
-# ---------------------------------------------------------------------------
-# Global matplotlib style — clean, publication-ready
-# ---------------------------------------------------------------------------
-matplotlib.rcParams.update({
-    "font.family":        "serif",
-    "font.size":          10,
-    "axes.titlesize":     11,
-    "axes.titleweight":   "bold",
-    "axes.labelsize":     10,
-    "axes.spines.top":    False,
-    "axes.spines.right":  False,
-    "axes.grid":          True,
-    "grid.color":         "#cccccc",
-    "grid.linewidth":     0.5,
-    "grid.linestyle":     "--",
-    "legend.frameon":     False,
-    "legend.fontsize":    9,
-    "xtick.labelsize":    9,
-    "ytick.labelsize":    9,
-    "figure.dpi":         150,
-    "savefig.dpi":        300,
-    "savefig.bbox":       "tight",
-})
-
-# Distinct palette — colorblind-safe, differs even in grayscale
-_FALLBACK_COLORS = [
-    "#1f77b4",  # blue
-    "#d62728",  # red
-    "#ff7f0e",  # orange
-    "#2ca02c",  # green
-    "#9467bd",  # purple
-    "#8c564b",  # brown
-]
-
-# Line styles for extra differentiation in convergence plot
-_LINE_STYLES = ["-", "--", "-.", ":"]
-
-
 class NoiseAnalyzer:
     """Analyzes and visualizes the effects of different noise models."""
 
     def __init__(self, tsp: TSPInstance, results: dict, optimal_cost: float,
-                 noise_meta: dict, output_dir: str = "figures"):
+                 noise_meta: dict, noise_params: dict, output_dir: str = "figures"):
         self.tsp = tsp
         self.results = results
         self.optimal_cost = optimal_cost
         self.noise_meta = noise_meta
+        self.noise_params = noise_params
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
-
-        # Pre-assign distinct fallback colors to every key
-        self._color_map = {}
-        for i, key in enumerate(results.keys()):
-            meta = self._get_meta(key)
-            self._color_map[key] = (
-                meta["color"] or _FALLBACK_COLORS[i % len(_FALLBACK_COLORS)]
-            )
 
     # ------------------------------------------------------------------
     # Meta handler (robust: dict / object / None)
@@ -97,6 +52,23 @@ class NoiseAnalyzer:
         plt.close(fig)
         print(f"[Saved] {path}")
 
+    def run_full_analysis(self):
+        """
+        Executes the complete analysis pipeline:
+        1. Prints text summary to console.
+        2. Generates all plots (convergence, quality, distributions).
+        3. Creates the final summary table image.
+        """
+        print(f"\n[Starting Full Analysis] Output directory: {self.output_dir}")
+        
+        self.print_summary()
+        self.plot_convergence()
+        self.plot_solution_quality()
+        self.plot_count_distributions()
+        self.plot_summary_table()
+        
+        print(f"\n[Analysis Complete] All figures saved to '{self.output_dir}'.")
+        
     # ------------------------------------------------------------------
     # Text summary
     # ------------------------------------------------------------------
@@ -106,29 +78,32 @@ class NoiseAnalyzer:
         print("═" * 65)
         print(f" Optimal (Brute Force): {self.optimal_cost:.4f}\n")
 
+        noise_params = self.noise_params
+
         for key, res in self.results.items():
-            meta      = self._get_meta(key)
+            meta = self._get_meta(key)
             best      = res.get("best")
             valid_pct = res.get("valid_ratio", 0)
 
-            print(f" [{meta['label']}] ({meta['desc']})")
+            if meta['label'] == 'ideal':
+                params_str = "No noise"
+            elif meta['label'] == 'depolarizing':
+                params_str = f"p1q={noise_params['p1q']}, p2q={noise_params['p2q']}"
+            elif meta['label'] == 'bit_flip':
+                params_str = f"p_bf={noise_params['p_bf']}"
+            elif meta['label'] == 'phase_flip':
+                params_str = f"p_pf={noise_params['p_pf']}"
+            else:
+                params_str = f"T1={noise_params['T1']}, T2={noise_params['T2']} \n t1q={noise_params['t1q']}, t2q={noise_params['t2q']}"
+
+            print(f" [{meta['label']}] ({params_str})")
+
             if best:
                 ratio = best["cost"] / self.optimal_cost
                 print(f"   Best cost    : {best['cost']:.4f}  (approx ratio = {ratio:.3f})")
                 print(f"   Best route   : {best['route']}")
                 print(f"   % Valid sols : {valid_pct * 100:.1f}%")
                 print(f"   Final energy : {res['final_energy']:.4f}")
-            else:
-                inv = res.get("invalid_best")
-                print(f"   No valid solution found.")
-                print(f"   % Valid sols : {valid_pct * 100:.1f}%")
-                if inv:
-                    print(
-                        f"   Most freq bit: {inv['bitstring'][:12]}..."
-                        f" ({inv['frequency'] * 100:.1f}%) [{inv['note']}]"
-                    )
-                print(f"   Final energy : {res['final_energy']:.4f}")
-            print()
 
         print("═" * 65)
 

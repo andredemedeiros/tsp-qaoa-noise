@@ -39,16 +39,16 @@ class QAOASolver:
         total = sum(counts.values())
 
         for bitstring, count in counts.items():
-            bits = np.array([int(b) for b in bitstring])
-            z = 1 - 2 * bits  # map 0->1, 1->-1
+            bits = np.array([int(b) for b in reversed(bitstring)])  
+            z = 1 - 2 * bits    
             ev = 0.0
 
             for term, coeff in zip(self.cost_op.paulis, self.cost_op.coeffs):
                 term_str = str(term)
                 val = float(np.real(coeff))
-                for q, p_char in enumerate(term_str[::-1]):
-                    if p_char == "Z":
-                        val *= z[q]
+                z_mask = term.z  # array bool size of n_qubits
+                for q in np.where(z_mask)[0]:
+                    val *= z[q]
                 ev += val
 
             energy += (count / total) * ev
@@ -141,6 +141,6 @@ class QAOASolver:
     # Consistency check for cost operator
     # ------------------------------------------------------------------
     def check_consistency(self, cost_op, n_qubits):
-        for term in cost_op.paulis:
-            term_str = str(term)
-            assert len(term_str) == n_qubits, f"Inconsistent term length: {term_str}"
+        for term, coeff in zip(cost_op.paulis, cost_op.coeffs):
+            assert len(str(term)) == n_qubits, f"Comprimento inconsistente: {term}"
+            assert abs(np.imag(coeff)) < 1e-10, f"Coeficiente complexo inesperado: {coeff}"

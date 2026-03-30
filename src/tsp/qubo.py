@@ -26,7 +26,7 @@ class TSPtoQUBO:
                 for s in range(t + 1, n):
                     vj = self.var_index(i, s)
                     Q[vi, vj] += 2 * self.A
-                Q[vi, vi] += -2 * self.A
+                Q[vi, vi] += -self.A
 
         # Constraint 2
         for t in range(n):
@@ -35,7 +35,7 @@ class TSPtoQUBO:
                 for j in range(i + 1, n):
                     vj = self.var_index(j, t)
                     Q[vi, vj] += 2 * self.A
-                Q[vi, vi] += -2 * self.A
+                Q[vi, vi] += -self.A
 
         # Objective (SEM duplicação)
         for i in range(n):
@@ -46,8 +46,8 @@ class TSPtoQUBO:
                     vi = self.var_index(i, t)
                     vj = self.var_index(j, (t + 1) % n)
 
-                    if vi < vj:
-                        Q[vi, vj] += self.B * self.tsp.dist[i][j]
+                    u, v = min(vi, vj), max(vi, vj)
+                    Q[u, v] += self.B * self.tsp.dist[i][j]
 
         return Q
 
@@ -59,7 +59,7 @@ class TSPtoQUBO:
 
         for i in range(n):
             h[i] -= Q[i, i] / 2
-            offset += Q[i, i] / 4
+            offset += Q[i, i] / 2
 
             for j in range(i + 1, n):
                 Qij = Q[i, j]
@@ -83,7 +83,7 @@ class TSPtoQUBO:
                 label = ["I"] * n
                 label[i] = "Z"
 
-                # 🔴 CRÍTICO: Qiskit usa ordem invertida
+                # Qiskit uses reverse order
                 pauli_list.append("".join(reversed(label)))
                 coeffs.append(h[i])
 
@@ -102,8 +102,7 @@ class TSPtoQUBO:
     def decode_bitstring(self, bitstring: str):
         n = self.n
 
-        bits = [int(b) for b in bitstring]  # SEM reverse
-
+        bits = [int(b) for b in reversed(bitstring)] #reverse
         x = np.array(bits).reshape(n, n)
 
         if not (np.all(x.sum(axis=1) == 1) and np.all(x.sum(axis=0) == 1)):
