@@ -1,6 +1,6 @@
-examples/
+/examples/
 
-src/noise/metadata.py
+/src/noise/metadata.py
 
 venv/
 
