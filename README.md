@@ -1,11 +1,11 @@
-# 🚀 TSP-QAOA-Noise
+# TSP-QAOA-Noise
 
 Implementation of the Traveling Salesman Problem (TSP) solved via the Quantum Approximate Optimization Algorithm (QAOA), with a comparative analysis of different quantum noise models.
 
 This project investigates how realistic noise affects the performance of QAOA when applied to combinatorial optimization problems.
 
 
-## 📌 Overview
+## Overview
 
 The workflow implemented in this repository follows:
 **TSP instance** → **QUBO formulation** → **QAOA optimization** → **Noise simulation** → **Analysis**
@@ -17,7 +17,7 @@ The workflow implemented in this repository follows:
 * Provide a modular and reproducible scientific pipeline.
 
 
-## 🧠 Theoretical Background
+## Theoretical Background
 
 ### 🔹 Traveling Salesman Problem (TSP)
 The Traveling Salesman Problem consists of finding the shortest route visiting all cities exactly once and returning to the origin.
@@ -38,7 +38,7 @@ We simulate realistic quantum hardware effects such as:
 * **Thermal relaxation ($T_1/T_2$):** Models energy loss and dephasing over time.
 
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 tsp-qaoa-noise/
@@ -63,7 +63,7 @@ tsp-qaoa-noise/
 ├── requirements.txt
 └── README.md
 ```
-## ⚙️ Installation
+## Installation
 
 **Clone the repository:**
 ```bash
@@ -75,7 +75,7 @@ cd tsp-qaoa-noise
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# ou
+# or
 venv\Scripts\activate     # Windows
 ```
 
@@ -84,7 +84,7 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-## ▶️ Usage
+##  Usage
 
 **Run the main experiment:**
 ```bash
@@ -92,7 +92,7 @@ python src/main.py
 ```
 
 
-## 🔬 Configuration
+##  Configuration
 
 All parameters can be adjusted in `src/config.py`.
 
@@ -104,7 +104,7 @@ P = 1         # QAOA layers
 SHOTS = 1024
 ```
 
-## 📊 Output
+##  Output
 
 The program generates a summary of the performance under different conditions:
 ```plaintext
@@ -128,7 +128,7 @@ Optimal (Brute Force): 2.0524
 - Approximation ratio ($\frac{E_{QAOA}}{E_{optimal}}$).
 
 
-## 🧪 Noise Models Implemented
+##  Noise Models Implemented
 
 | Model | Description |
 |---|---|
@@ -138,7 +138,7 @@ Optimal (Brute Force): 2.0524
 | Thermal | Models decoherence ($T_1/T_2$ relaxation) |
 
 
-## 📈 Analysis
+## Analysis
 
 The analysis module:
 - Compares noisy vs ideal results.
@@ -146,21 +146,21 @@ The analysis module:
 - Evaluates robustness of QAOA.
 
 
-## 🎯 Key Contributions
+##  Key Contributions
 
 - Modular implementation of TSP → QUBO → QAOA.
 - Integration of multiple noise models for robustness testing.
 - Reproducible experimental pipeline for quantum optimization research.
 - Clean architecture for scientific use.
 
-## ⚠️ Limitations
+##  Limitations
 
 - **Exponential complexity:** TSP brute force is used for validation (limited to small $N$).
 - **Scale:** Small instances only (typically $N \le 5$ due to qubit requirements).
 - **Environment:** Simulator-based (not real quantum hardware).
 
 
-## 🔮 Future Work
+##  Future Work
 
 - Scaling to larger instances using decomposition.
 - Integration with real quantum devices (e.g., IBM Quantum).
@@ -168,20 +168,20 @@ The analysis module:
 - Implementation of Error Mitigation techniques (ZNE, PEC).
 
 
-## 📚 References
+## References
 
 - Farhi, E. et al. (2014) – *A Quantum Approximate Optimization Algorithm.*
 - Lucas, A. (2014) – *Ising formulations of many NP problems.*
 - Qiskit Documentation – https://qiskit.org
 
 
-## 👨‍💻 Author
+## Author
 
 **André Medeiros** 
 
 **Mikita Szimonenko**
 
 
-## 📄 License
+## License
 
 This project is for academic and research purposes.

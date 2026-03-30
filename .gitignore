@@ -1,6 +1,10 @@
-Examples/
+examples/
+
+metadata.py
 
 venv/
+
+.ipynb_checkpoints/
 
 __pycache__/
 *.py[cod]
