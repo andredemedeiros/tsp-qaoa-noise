@@ -21,7 +21,7 @@ def main():
     for key, model in noise_models.items():
         results[key] = solver.solve(noise_model=model,n_starts=config.N_STARTS)
     
-    analyzer = NoiseAnalyzer(tsp, results, optimal_cost, noise_models, config.noise_params)
+    analyzer = NoiseAnalyzer(tsp, qubo, results, optimal_cost, noise_models, config.noise_params, config.N_STARTS, config.SHOTS)
     analyzer.run_full_analysis()
 
 if __name__ == "__main__":

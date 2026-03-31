@@ -3,18 +3,23 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+
 from tsp.instance import TSPInstance
+from tsp.qubo import TSPtoQUBO
 
 class NoiseAnalyzer:
     """Analyzes and visualizes the effects of different noise models."""
 
-    def __init__(self, tsp: TSPInstance, results: dict, optimal_cost: float,
-                 noise_meta: dict, noise_params: dict, output_dir: str = "figures"):
+    def __init__(self, tsp: TSPInstance, qubo:TSPtoQUBO, results: dict, optimal_cost: float,
+                 noise_meta: dict, noise_params: dict, n_starts : int, n_shots: int, output_dir: str = "figures"):
         self.tsp = tsp
+        self.qubo = qubo
         self.results = results
         self.optimal_cost = optimal_cost
         self.noise_meta = noise_meta
         self.noise_params = noise_params
+        self.n_starts = n_starts
+        self.n_shots = n_shots
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
@@ -72,23 +77,36 @@ class NoiseAnalyzer:
         print("═" * 65)
 
     def plot_convergence(self):
-        fig, ax = plt.subplots(figsize=(7, 4))
+        n_trials = self.n_starts
+        fig, axes = plt.subplots(
+            n_trials,
+            1,
+            figsize=(7, 3 * n_trials),
+            sharex=True,
+            sharey=True
+        )
 
-        for i, (key, res) in enumerate(self.results.items()):
-            history = res.get("history")
+        if n_trials == 1:
+            axes = [axes]
 
-            ax.plot(
-                history,
-                label=key,
-            )
-        
-        ax.set_xlabel("Iteration")
-        ax.set_ylabel(r"$\langle H_C \rangle$")
-        ax.set_title("QAOA Energy Convergence by Noise Model")
-        ax.legend(loc="upper right")
-        fig.tight_layout()
+        for i, ax in enumerate(axes):
+            for key, res in self.results.items():
+                trial_histories = res.get("trial_histories", [])
+                if i < len(trial_histories):
+                    history = trial_histories[i]["history"]
+                    ax.plot(history, label=f"{key} (trial {i})")
+
+            ax.set_ylabel(r"$\langle H_C \rangle$")
+            ax.set_title(f"Trial {i}")
+
+            ax.legend(loc="upper right", fontsize=8)
+            ax.grid(True)
+
+        axes[-1].set_xlabel("Iteration")
+        fig.suptitle("QAOA Energy Convergence by Trial and Model")
+        fig.tight_layout(rect=[0, 0, 1, 1])
         self._save_fig(fig, "convergence.png")
-
+        
     def plot_solution_quality(self):
         keys      = list(self.results.keys())
         costs     = [
@@ -104,13 +122,14 @@ class NoiseAnalyzer:
         bars1 = ax1.bar(x, costs)
         ax1.set_xticks(x)
         ax1.set_xticklabels(keys)
-        ax1.set_ylabel("Best Route Cost")
-        ax1.set_title("Solution Quality")
+        ax1.set_ylabel("Best Route Cost by Model")
+        ax1.set_title("Solution Quality by Model")
         for bar, cost in zip(bars1, costs):
             if not np.isnan(cost):
                 ax1.text(bar.get_x() + bar.get_width() / 2,
                          bar.get_height() + 0.0005,
                          f"{cost:.4f}", ha="center", va="bottom", fontsize=8)
+                ax1.grid(True)
 
         bars2 = ax2.bar(x, valid_pcts)
         ax2.set_xticks(x)
@@ -121,6 +140,7 @@ class NoiseAnalyzer:
             ax2.text(bar.get_x() + bar.get_width() / 2,
                      bar.get_height() + 0.0005,
                      f"{pct:.1f}%", ha="center", va="bottom", fontsize=8)
+            ax2.grid(True)
 
         fig.tight_layout()
         self._save_fig(fig, "solution_quality.png")
@@ -130,26 +150,35 @@ class NoiseAnalyzer:
         fig, axes = plt.subplots(2, 3,
                                  figsize=(4.5 * 3, 4.5 * 2),
                                  sharex=True)
-        
+                
         axes = axes.flatten()
 
         for ax, key in zip(axes, keys):
             counts = self.results[key]["counts"]
-            top    = sorted(counts.items(), key=lambda x: -x[1])[:12]
-            bs_labels = [bs[:8] for bs, _ in top]
+            top    = sorted(counts.items(), key=lambda x: -x[1])[:10]
+            bs_labels = [bs for bs, _ in top]
             values    = [c for _, c in top]
 
-            ax.barh(range(len(bs_labels)), values)
+            colors = []
+            for bs, _ in top:
+                route = self.qubo.decode_bitstring(bs)
+                if route is not None:
+                    colors.append("tab:blue")   # valid bitstring
+                else:
+                    colors.append("tab:gray")   # invalid bitstring
+
+            ax.barh(range(len(bs_labels)), values, color=colors)
             ax.set_yticks(range(len(bs_labels)))
             ax.set_yticklabels(bs_labels)
             ax.set_xlabel("Counts")
             ax.set_title(key)
             ax.invert_yaxis()
+            ax.grid(True)
 
         for ax in axes[5:]:
             ax.remove()
 
-        fig.suptitle("Top-12 Bitstring Frequencies by Model")
+        fig.suptitle(f"Top-10 Final State Distributions ({4 * self.n_shots} shots) by Model")
         fig.tight_layout()
         self._save_fig(fig, "counts.png")
 
@@ -202,18 +231,18 @@ class NoiseAnalyzer:
         table.auto_set_font_size(False)
         table.set_fontsize(9.5)
 
-        header_bg  = "#1a1a2e"
-        row_colors = ["#ffffff", "#f4f4f8"]
+        #header_bg  = "#1a1a2e"
+        #row_colors = ["#ffffff", "#f4f4f8"]
 
         for (row, col), cell in table.get_celld().items():
             cell.set_linewidth(0.4)
-            cell.set_edgecolor("#aaaaaa")
+            #cell.set_edgecolor("#aaaaaa")
             if row == 0:
-                cell.set_facecolor(header_bg)
-                cell.set_text_props(color="white", fontweight="bold",
+                #cell.set_facecolor(header_bg)
+                cell.set_text_props(color="#1a1a1a", fontweight="bold",
                                     fontsize=9.5)
             else:
-                cell.set_facecolor(row_colors[(row - 1) % 2])
+                #cell.set_facecolor(row_colors[(row - 1) % 2])
                 cell.set_text_props(color="#1a1a1a", fontsize=9.5)
                 # Parameters column — muted italic
                 if col == 1:
@@ -221,7 +250,7 @@ class NoiseAnalyzer:
 
         ax.set_title(
             "Comparative Summary — Noise Model Effects on TSP-QAOA",
-            fontsize=11, pad=10,
+            fontsize=11,
         )
         fig.tight_layout()
         self._save_fig(fig, "summary_table.png")

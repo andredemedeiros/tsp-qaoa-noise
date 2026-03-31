@@ -67,6 +67,7 @@ class QAOASolver:
         best_result = None
         best_fun = float("inf")
         all_history = []
+        trial_histories = []
 
         for trial in range(n_starts):
             np.random.seed(trial * 7)
@@ -82,6 +83,14 @@ class QAOASolver:
                 method="COBYLA",
                 options={"maxiter": 200}
             )
+
+            trial_histories.append({
+                "trial": trial,
+                "init_params": init_params.copy(),
+                "history": trial_history,
+                "final_energy": res.fun
+            })
+
 
             all_history.extend(trial_history)
 
@@ -130,6 +139,7 @@ class QAOASolver:
             "optimal_params": best_result.x,
             "final_energy": best_result.fun,
             "history": all_history,
+            "trial_histories": trial_histories,
             "counts": counts,
             "solutions": solutions,
             "best": best,
