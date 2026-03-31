@@ -6,6 +6,8 @@ N_CITIES = 3
 QAOA_P = 1 # fast to dev
 #HOTS = 1024
 SHOTS = 20 # fast to dev
+#N_STARTS = 3
+N_STARTS = 1
 
 A = 15.0
 B = 1.0

@@ -15,11 +15,11 @@ def main():
     solver = QAOASolver(qubo, p=config.QAOA_P, shots=config.SHOTS)
 
     results = {}
-    results["ideal"] = solver.solve()
+    results["ideal"] = solver.solve(n_starts=config.N_STARTS)
     
     noise_models = create_noise_models(params=config.noise_params)
     for key, model in noise_models.items():
-        results[key] = solver.solve(noise_model=model)
+        results[key] = solver.solve(noise_model=model,n_starts=config.N_STARTS)
     
     analyzer = NoiseAnalyzer(tsp, results, optimal_cost, noise_models, config.noise_params)
     analyzer.run_full_analysis()
