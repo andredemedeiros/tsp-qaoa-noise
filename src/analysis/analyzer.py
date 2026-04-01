@@ -156,15 +156,17 @@ class NoiseAnalyzer:
         for ax, key in zip(axes, keys):
             counts = self.results[key]["counts"]
             top    = sorted(counts.items(), key=lambda x: -x[1])[:10]
-            bs_labels = [bs for bs, _ in top]
             values    = [c for _, c in top]
 
             colors = []
+            bs_labels = []
             for bs, _ in top:
                 route = self.qubo.decode_bitstring(bs)
                 if route is not None:
+                    bs_labels.append(f"{bs}\n{route}")
                     colors.append("tab:blue")   # valid bitstring
                 else:
+                    bs_labels.append(f"{bs}\n—")
                     colors.append("tab:gray")   # invalid bitstring
 
             ax.barh(range(len(bs_labels)), values, color=colors)
