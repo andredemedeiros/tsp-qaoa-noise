@@ -1,8 +1,7 @@
 import os
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+from matplotlib.patches import Patch
 
 from tsp.instance import TSPInstance
 from tsp.qubo import TSPtoQUBO
@@ -135,7 +134,7 @@ class NoiseAnalyzer:
         ax2.set_xticks(x)
         ax2.set_xticklabels(keys)
         ax2.set_ylabel("Valid Samples (%)")
-        ax2.set_title("Valid Solution Rate")
+        ax2.set_title("Valid Solution Rate by Model")
         for bar, pct in zip(bars2, valid_pcts):
             ax2.text(bar.get_x() + bar.get_width() / 2,
                      bar.get_height() + 0.0005,
@@ -177,8 +176,17 @@ class NoiseAnalyzer:
             ax.invert_yaxis()
             ax.grid(True)
 
-        for ax in axes[5:]:
-            ax.remove()
+        legend_ax = axes[5]
+        legend_ax.axis("off")
+        legend_ax.legend(
+            handles=[
+                Patch(facecolor="tab:blue", label="Valid solution"),
+                Patch(facecolor="tab:gray", label="Invalid solution"),
+            ],
+            loc="center",
+            frameon=False,
+            fontsize=12,
+        )
 
         fig.suptitle(f"Top-10 Final State Distributions ({4 * self.n_shots} shots) by Model")
         fig.tight_layout()
@@ -214,7 +222,7 @@ class NoiseAnalyzer:
             rows.append([key, desc, best_cost,
                          approx_ratio, valid_str, n_iter])
 
-        col_labels = ["Noise Model", "Parameters", "Best Cost",
+        col_labels = ["Model", "Parameters", "Best Cost",
                       "Approx. Ratio", "Valid (%)", "Iterations"]
 
         n_rows  = len(rows)

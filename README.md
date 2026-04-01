@@ -75,8 +75,6 @@ cd tsp-qaoa-noise
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
 ```
 
 **Install dependencies:**
@@ -98,35 +96,73 @@ All parameters can be adjusted in `src/config.py`.
 
 **Example setup:**
 ```python
-N_CITIES = 3
-SEED = 42
-P = 1         # QAOA layers
-SHOTS = 1024
+# dont change
+SEED = 42       # Random seed for reproducibility
+N_CITIES = 3    # Number of cities in the TSP
+
+
+# can change
+A = 15.0        # QUBO penalty parameter for constraints, can adjust
+B = 1.0         # QUBO weight for cost function, can adjust
+
+QAOA_P = 3             # QAOA circuit depth (p)
+SHOTS = 1024           # Number of measurement shots
+N_STARTS = 3           # Number of random initializations for optimization
+
+noise_params = {       # Noise model parameters
+    "p1q": 0.005,      # 1-qubit gate depolarizing error probability
+    "p2q": 0.02,       # 2-qubit gate depolarizing error probability
+    "p_bf": 0.01,      # Probability of bit-flip error (X)
+    "p_pf": 0.01,      # Probability of phase-flip error (Z)
+    "T1": 50e3,        # Longitudinal relaxation time
+    "T2": 30e3,        # Transverse relaxation (dephasing) time
+    "t1q": 50,         # 1-qubit gate execution time
+    "t2q": 300         # 2-qubit gate execution time for 2-qubit gates (CX/CZ)
+}
 ```
 
 ##  Output
 
 The program generates a summary of the performance under different conditions:
 ```plaintext
-SUMMARY — EFFECTS OF NOISE MODELS ON TSP-QAOA
-═══════════════════════════════════════════════
-Optimal (Brute Force): 2.0524
+═════════════════════════════════════════════════════════════════
+ SUMMARY — EFFECTS OF NOISE MODELS ON TSP-QAOA
+═════════════════════════════════════════════════════════════════
+ Optimal (Brute Force): 2.0524
 
-[ideal]
-  Best cost     : 2.0524  (approx ratio = 1.000)
-
-[depolarizing]
-  Best cost     : 2.4150  (approx ratio = 0.850)
-
-[bit_flip]
-  Best cost     : 2.1892  (approx ratio = 0.937)
+ [ideal] (No noise)
+   Best cost    : 2.0524  (approx ratio = 1.000)
+   Best route   : [1, 0, 2]
+   % Valid sols : 10.4%
+   Final energy : -45.3544
+ [depolarizing] (p1q=0.005, p2q=0.02)
+   Best cost    : 2.0524  (approx ratio = 1.000)
+   Best route   : [1, 2, 0]
+   % Valid sols : 1.6%
+   Final energy : -14.3836
+ [bit_flip] (p_bf=0.01)
+   Best cost    : 2.0524  (approx ratio = 1.000)
+   Best route   : [1, 2, 0]
+   % Valid sols : 1.0%
+   Final energy : -8.3045
+ [phase_flip] (p_pf=0.01)
+   Best cost    : 2.0524  (approx ratio = 1.000)
+   Best route   : [1, 0, 2]
+   % Valid sols : 2.7%
+   Final energy : -15.7981
+ [thermal] (T1=50000.0, T2=30000.0 
+ t1q=50, t2q=300)
+   Best cost    : 2.0524  (approx ratio = 1.000)
+   Best route   : [0, 2, 1]
+   % Valid sols : 1.5%
+   Final energy : -17.5694
 ```
 
-**Metrics calculated:**
+<!-- **Metrics calculated:**
 - Best route found.
 - Cost comparison with optimal solution.
 - Approximation ratio ($\frac{E_{QAOA}}{E_{optimal}}$).
-
+ -->
 
 ##  Noise Models Implemented
 
@@ -141,7 +177,9 @@ Optimal (Brute Force): 2.0524
 ## Analysis
 
 The analysis module:
+- QAOA energy convergence of each model
 - Compares noisy vs ideal results.
+- Compares the amostral distribution of outputs by model.
 - Computes approximation ratios.
 - Evaluates robustness of QAOA.
 
@@ -153,25 +191,23 @@ The analysis module:
 - Reproducible experimental pipeline for quantum optimization research.
 - Clean architecture for scientific use.
 
-##  Limitations
+<!-- ##  Limitations
 
 - **Exponential complexity:** TSP brute force is used for validation (limited to small $N$).
 - **Scale:** Small instances only (typically $N \le 5$ due to qubit requirements).
-- **Environment:** Simulator-based (not real quantum hardware).
+- **Environment:** Simulator-based (not real quantum hardware). -->
 
 
-##  Future Work
+<!-- ##  Future Work
 
 - Scaling to larger instances using decomposition.
 - Integration with real quantum devices (e.g., IBM Quantum).
 - Testing advanced optimizers (SPSA, COBYLA) for QAOA.
-- Implementation of Error Mitigation techniques (ZNE, PEC).
+- Implementation of Error Mitigation techniques (ZNE, PEC). -->
 
 
 ## References
 
-- Farhi, E. et al. (2014) – *A Quantum Approximate Optimization Algorithm.*
-- Lucas, A. (2014) – *Ising formulations of many NP problems.*
 - Qiskit Documentation – https://qiskit.org
 
 
