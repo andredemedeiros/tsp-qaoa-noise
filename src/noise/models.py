@@ -5,21 +5,9 @@ from qiskit_aer.noise import (
     thermal_relaxation_error,
 )
 
-def create_noise_models(params: dict = None) -> dict:
-    """
-    Generates a dictionary of Qiskit NoiseModels with customizable parameters.
-    
-    Args:
-        params (dict): Dictionary containing noise parameters. 
-                       Example: {"p1q": 0.001, "T1": 100e3, "t2q": 500}
-    
-    Returns:
-        dict: Noise models for 'depolarizing', 'bit_flip', 'phase_flip', and 'thermal'.
-    """
-    
-    # --- 1. Default Parameter Configuration ---
-    # Values are typically in nanoseconds (ns) for times (T1, T2, gate times)
-    p = {
+def _default_noise_params(params: dict = None) -> dict:
+    """Return the default noise parameters updated with the given overrides."""
+    defaults = {
         "p1q": 0.005,      # 1-qubit gate error (depolarizing)
         "p2q": 0.02,       # 2-qubit gate error (depolarizing)
         "p_bf": 0.01,      # Bit Flip probability (X)
@@ -29,64 +17,89 @@ def create_noise_models(params: dict = None) -> dict:
         "t1q": 50,         # 1-qubit gate execution time
         "t2q": 300         # 2-qubit gate execution time (CX/CZ)
     }
-    
-    # Update with values passed from main, if any
     if params:
-        p.update(params)
+        defaults.update(params)
 
-    # --- 2. Physical Consistency Validation (Choi-Jamiolkowski Criterion) ---
-    # Physically, T2 cannot exceed 2*T1.
-    if p["T2"] > 2 * p["T1"]:
-        p["T2"] = 2 * p["T1"]
-        print(f"Warning: T2 adjusted to {p['T2']} to maintain physical consistency (T2 <= 2*T1).")
+    if defaults["T2"] > 2 * defaults["T1"]:
+        defaults["T2"] = 2 * defaults["T1"]
+        print(f"Warning: T2 adjusted to {defaults['T2']} to maintain physical consistency (T2 <= 2*T1).")
 
-    models = {}
-    
-    # Standard gate sets for noise application
+    return defaults
+
+
+def create_depolarizing_noise_model(params: dict = None) -> NoiseModel:
+    """Returns a depolarizing noise model."""
+    p = _default_noise_params(params)
     gates_1q = ["u1", "u2", "u3", "rx", "ry", "rz", "h", "id"]
     gates_2q = ["cx", "cz"]
 
-    # --- 3. Model: Depolarizing ---
     nm_dep = NoiseModel()
     err_dep_1q = depolarizing_error(p["p1q"], 1)
     err_dep_2q = depolarizing_error(p["p2q"], 2)
-    
+
     nm_dep.add_all_qubit_quantum_error(err_dep_1q, gates_1q)
     nm_dep.add_all_qubit_quantum_error(err_dep_2q, gates_2q)
-    models["depolarizing"] = nm_dep
 
-    # --- 4. Model: Bit Flip (X) ---
+    return nm_dep
+
+
+def create_bit_flip_noise_model(params: dict = None) -> NoiseModel:
+    """Returns a bit flip noise model."""
+    p = _default_noise_params(params)
+    gates_1q = ["u1", "u2", "u3", "rx", "ry", "rz", "h", "id"]
+    gates_2q = ["cx", "cz"]
+
     nm_bf = NoiseModel()
     err_bf_1q = pauli_error([("X", p["p_bf"]), ("I", 1 - p["p_bf"])])
-    err_bf_2q = err_bf_1q.expand(err_bf_1q) # Independent error on both qubits
-    
+    err_bf_2q = err_bf_1q.expand(err_bf_1q)
+
     nm_bf.add_all_qubit_quantum_error(err_bf_1q, gates_1q)
     nm_bf.add_all_qubit_quantum_error(err_bf_2q, gates_2q)
-    models["bit_flip"] = nm_bf
 
-    # --- 5. Model: Phase Flip (Z) ---
+    return nm_bf
+
+
+def create_phase_flip_noise_model(params: dict = None) -> NoiseModel:
+    """Returns a phase flip noise model."""
+    p = _default_noise_params(params)
+    gates_1q = ["u1", "u2", "u3", "rx", "ry", "rz", "h", "id"]
+    gates_2q = ["cx", "cz"]
+
     nm_pf = NoiseModel()
     err_pf_1q = pauli_error([("Z", p["p_pf"]), ("I", 1 - p["p_pf"])])
     err_pf_2q = err_pf_1q.expand(err_pf_1q)
-    
+
     nm_pf.add_all_qubit_quantum_error(err_pf_1q, gates_1q)
     nm_pf.add_all_qubit_quantum_error(err_pf_2q, gates_2q)
-    models["phase_flip"] = nm_pf
 
-    # --- 6. Model: Thermal Relaxation ---
+    return nm_pf
+
+
+def create_thermal_noise_model(params: dict = None) -> NoiseModel:
+    """Returns a thermal relaxation noise model."""
+    p = _default_noise_params(params)
+    gates_1q = ["u1", "u2", "u3", "rx", "ry", "rz", "h", "id"]
+    gates_2q = ["cx", "cz"]
+
     nm_th = NoiseModel()
-    # 1-qubit error based on T1, T2, and gate time
     err_th_1q = thermal_relaxation_error(p["T1"], p["T2"], p["t1q"])
-    
-    # 2-qubit error: assumes relaxation occurs on both qubits during t2q
     err_th_q_individual = thermal_relaxation_error(p["T1"], p["T2"], p["t2q"])
     err_th_2q = err_th_q_individual.expand(err_th_q_individual)
-    
+
     nm_th.add_all_qubit_quantum_error(err_th_1q, gates_1q)
     nm_th.add_all_qubit_quantum_error(err_th_2q, gates_2q)
-    models["thermal"] = nm_th
 
-    return models
+    return nm_th
+
+
+def create_noise_models(params: dict = None) -> dict:
+    """Returns the default set of noise models."""
+    return {
+        "depolarizing": create_depolarizing_noise_model(params),
+        "bit_flip": create_bit_flip_noise_model(params),
+        "phase_flip": create_phase_flip_noise_model(params),
+        "thermal": create_thermal_noise_model(params),
+    }
 
 # from qiskit_aer.noise import (
 #     NoiseModel,

@@ -1,6 +1,7 @@
 # solver_complete.py
 import numpy as np
 from qiskit import transpile
+from qiskit.circuit import ParameterVector
 from qiskit_aer import AerSimulator
 from scipy.optimize import minimize
 
@@ -17,6 +18,13 @@ class QAOASolver:
         self.shots = shots
         self.cost_op = qubo.build_cost_operator()
         self.n_qubits = qubo.n_qubits
+        self.param_vector = ParameterVector("theta", length=2 * self.p)
+        self.parameterized_circuit = build_qaoa_circuit(
+            cost_op=self.cost_op,
+            params=self.param_vector,
+            p=self.p,
+            n_qubits=self.n_qubits,
+        )
 
         # Validate operator consistency
         self.check_consistency(self.cost_op, self.n_qubits)
@@ -25,14 +33,9 @@ class QAOASolver:
     # Compute expectation value (with optional energy history)
     # ------------------------------------------------------------------
     def _expectation_value(self, params, simulator, history_list=None):
-        qc = build_qaoa_circuit(
-            cost_op=self.cost_op,
-            params=params,
-            p=self.p,
-            n_qubits=self.n_qubits
-        )
-        qc_t = transpile(qc, simulator)
-        result = simulator.run(qc_t, shots=self.shots).result()
+        bound = {self.param_vector[i]: float(params[i]) for i in range(2 * self.p)}
+        qc = self.transpiled_circuit.assign_parameters(bound)
+        result = simulator.run(qc, shots=self.shots).result()
         counts = result.get_counts()
 
         energy = 0.0
@@ -63,6 +66,7 @@ class QAOASolver:
     # ------------------------------------------------------------------
     def solve(self, noise_model=None, verbose=True, n_starts=3):
         simulator = AerSimulator(noise_model=noise_model, seed_simulator=42)
+        self.transpiled_circuit = transpile(self.parameterized_circuit, simulator)
 
         best_result = None
         best_fun = float("inf")
@@ -102,14 +106,9 @@ class QAOASolver:
                 print(f"[Trial {trial}] Energy = {res.fun:.4f}, iterations = {len(trial_history)}")
 
         # ---------------- FINAL SAMPLING ----------------
-        qc = build_qaoa_circuit(
-            cost_op=self.cost_op,
-            params=best_result.x,
-            p=self.p,
-            n_qubits=self.n_qubits
-        )
-        qc_t = transpile(qc, simulator)
-        result = simulator.run(qc_t, shots=self.shots * 4).result()
+        bound = {self.param_vector[i]: float(best_result.x[i]) for i in range(2 * self.p)}
+        qc = self.transpiled_circuit.assign_parameters(bound)
+        result = simulator.run(qc, shots=self.shots * 4).result()
         counts = result.get_counts()
 
         # ---------------- VALID SOLUTIONS ----------------

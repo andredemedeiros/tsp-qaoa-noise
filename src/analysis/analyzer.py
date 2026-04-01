@@ -264,3 +264,59 @@ class NoiseAnalyzer:
         )
         fig.tight_layout()
         self._save_fig(fig, "summary_table.png")
+
+
+    def plot_noise_sweep(self,
+                         sweep_results,
+                         x_key,
+                         x_label,
+                         title_prefix,
+                         output_name="noise_sweep.png"):
+        """Plot a generic noise sweep for best cost, valid rate, and elapsed time."""
+        x_vals = [entry[x_key] for entry in sweep_results]
+        costs = [entry["best_cost"] for entry in sweep_results]
+        valids = [entry["valid_ratio"] for entry in sweep_results]
+        times = [entry["elapsed"] for entry in sweep_results]
+
+        fig, axes = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
+
+        self._plot_sweep_axis(
+            axes[0],
+            x_vals,
+            {"Best Cost": costs},
+            x_label,
+            "Best Cost",
+            f"{title_prefix} — Best Cost vs Noise Probability",
+        )
+        self._plot_sweep_axis(
+            axes[1],
+            x_vals,
+            {"Valid Rate (%)": valids},
+            x_label,
+            "Valid Rate (%)",
+            f"{title_prefix} — Valid Rate vs Noise Probability",
+        )
+        self._plot_sweep_axis(
+            axes[2],
+            x_vals,
+            {"Elapsed Time (s)": times},
+            x_label,
+            "Elapsed Time (s)",
+            f"{title_prefix} — Elapsed Time vs Noise Probability",
+        )
+
+        fig.tight_layout()
+        self._save_fig(fig, output_name)
+
+    def _plot_sweep_axis(self, ax, x_values, series, xlabel, ylabel, title):
+        for label, values in series.items():
+            ax.plot(x_values, values, marker="o", linestyle="-", label=label)
+            for x, y in zip(x_values, values):
+                ax.text(x, y, f"{y:.3f}", ha="center", va="bottom", fontsize=8)
+        ax.set_xticks(x_values)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.grid(True)
+        if len(series) > 1:
+            ax.legend()

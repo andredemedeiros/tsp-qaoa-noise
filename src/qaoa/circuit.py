@@ -1,14 +1,18 @@
 import numpy as np
 from qiskit import QuantumCircuit
+from qiskit.circuit import ParameterVector
 
 
-def build_qaoa_circuit(cost_op, params: np.ndarray, p: int, n_qubits: int) -> QuantumCircuit:
+def build_qaoa_circuit(cost_op, params, p: int, n_qubits: int) -> QuantumCircuit:
 
     qc = QuantumCircuit(n_qubits)
     qc.h(range(n_qubits))
 
+    if params is None:
+        params = ParameterVector("theta", length=2 * p)
+
     gammas = params[:p]
-    betas  = params[p:]
+    betas = params[p:]
 
     for layer in range(p):
         gam = gammas[layer]
