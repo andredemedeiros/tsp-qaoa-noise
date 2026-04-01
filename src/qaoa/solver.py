@@ -61,7 +61,7 @@ class QAOASolver:
     # ------------------------------------------------------------------
     # Solve QAOA problem
     # ------------------------------------------------------------------
-    def solve(self, noise_model=None, verbose=True, n_starts=3):
+    def solve(self, noise_model=None, verbose=True, n_starts=3, method="COBYLA"):
         simulator = AerSimulator(noise_model=noise_model, seed_simulator=42)
 
         best_result = None
@@ -80,7 +80,7 @@ class QAOASolver:
             res = minimize(
                 objective,
                 init_params,
-                method="COBYLA",
+                method=method,
                 options={"maxiter": 200}
             )
 
@@ -97,9 +97,9 @@ class QAOASolver:
             if res.fun < best_fun:
                 best_fun = res.fun
                 best_result = res
-
+            
             if verbose:
-                print(f"[Trial {trial}] Energy = {res.fun:.4f}, iterations = {len(trial_history)}")
+                print(f"[{method} - Trial {trial}] Energy = {res.fun:.4f} - iterations = {len(trial_history)}")
 
         # ---------------- FINAL SAMPLING ----------------
         qc = build_qaoa_circuit(

@@ -10,7 +10,8 @@ class NoiseAnalyzer:
     """Analyzes and visualizes the effects of different noise models."""
 
     def __init__(self, tsp: TSPInstance, qubo:TSPtoQUBO, results: dict, optimal_cost: float,
-                 noise_meta: dict, noise_params: dict, n_starts : int, n_shots: int, output_dir: str = "figures"):
+                 noise_meta: dict, noise_params: dict, n_starts : int, n_shots: int, opt : str = "COBYLA",
+                 output_dir: str = "figures"):
         self.tsp = tsp
         self.qubo = qubo
         self.results = results
@@ -19,6 +20,7 @@ class NoiseAnalyzer:
         self.noise_params = noise_params
         self.n_starts = n_starts
         self.n_shots = n_shots
+        self.opt = opt
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
@@ -104,7 +106,7 @@ class NoiseAnalyzer:
         axes[-1].set_xlabel("Iteration")
         fig.suptitle("QAOA Energy Convergence by Trial and Model")
         fig.tight_layout(rect=[0, 0, 1, 1])
-        self._save_fig(fig, "convergence.png")
+        self._save_fig(fig, f"convergence_{self.opt}.png")
         
     def plot_solution_quality(self):
         keys      = list(self.results.keys())
@@ -142,7 +144,7 @@ class NoiseAnalyzer:
             ax2.grid(True)
 
         fig.tight_layout()
-        self._save_fig(fig, "solution_quality.png")
+        self._save_fig(fig, f"solution_quality_{self.opt}.png")
 
     def plot_count_distributions(self):
         keys     = list(self.results.keys())
@@ -190,7 +192,7 @@ class NoiseAnalyzer:
 
         fig.suptitle(f"Top-10 Final State Distributions ({4 * self.n_shots} shots) by Model")
         fig.tight_layout()
-        self._save_fig(fig, "counts.png")
+        self._save_fig(fig, f"counts_{self.opt}.png")
 
     def plot_summary_table(self):
         rows = []
@@ -263,4 +265,4 @@ class NoiseAnalyzer:
             fontsize=11,
         )
         fig.tight_layout()
-        self._save_fig(fig, "summary_table.png")
+        self._save_fig(fig, f"summary_table_{self.opt}.png")
