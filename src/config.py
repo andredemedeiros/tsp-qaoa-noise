@@ -1,14 +1,16 @@
 # dont change
 SEED = 42       # Random seed for reproducibility
 N_CITIES = 3    # Number of cities in the TSP
-A = 15.0        # QUBO penalty parameter for constraints, can adjust
-B = 1.0         # QUBO weight for cost function, can adjust
 
 
 # can change
+A = 15.0        # QUBO penalty parameter for constraints, can adjust
+B = 1.0         # QUBO weight for cost function, can adjust
+
 QAOA_P = 3             # QAOA circuit depth (p)
 SHOTS = 1024           # Number of measurement shots
 N_STARTS = 3           # Number of random initializations for optimization
+
 noise_params = {       # Noise model parameters
     "p1q": 0.005,      # 1-qubit gate depolarizing error probability
     "p2q": 0.02,       # 2-qubit gate depolarizing error probability
