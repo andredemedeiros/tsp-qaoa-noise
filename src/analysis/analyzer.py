@@ -308,6 +308,97 @@ class NoiseAnalyzer:
         fig.tight_layout()
         self._save_fig(fig, output_name)
 
+    def plot_noise_sweep_comparison(self,
+                                    all_sweep_results,
+                                    x_key,
+                                    x_label,
+                                    title_prefix,
+                                    output_name="noise_sweep_comparison.png"):
+        """Plot a comparison of noise sweeps for multiple models using grouped bar charts."""
+        x_vals = None
+        costs = {}
+        valids = {}
+        times = {}
+
+        for model, sweep in all_sweep_results.items():
+            if x_vals is None:
+                x_vals = [entry[x_key] for entry in sweep]
+
+            costs[model] = [entry["best_cost"] for entry in sweep]
+            valids[model] = [entry["valid_ratio"] for entry in sweep]
+            times[model] = [entry["elapsed"] for entry in sweep]
+
+        models = list(all_sweep_results.keys())
+        n_models = len(models)
+        x = np.arange(len(x_vals))
+        width = 0.75 / n_models
+
+        fig, axes = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
+
+        self._plot_grouped_bar_axis(
+            axes[0],
+            x,
+            x_vals,
+            models,
+            costs,
+            width,
+            x_label,
+            "Best Cost",
+            f"{title_prefix} — Best Cost vs Noise Probability",
+        )
+        self._plot_grouped_bar_axis(
+            axes[1],
+            x,
+            x_vals,
+            models,
+            valids,
+            width,
+            x_label,
+            "Valid Rate (%)",
+            f"{title_prefix} — Valid Rate vs Noise Probability",
+        )
+        self._plot_grouped_bar_axis(
+            axes[2],
+            x,
+            x_vals,
+            models,
+            times,
+            width,
+            x_label,
+            "Elapsed Time (s)",
+            f"{title_prefix} — Elapsed Time vs Noise Probability",
+        )
+
+        fig.tight_layout()
+        self._save_fig(fig, output_name)
+
+    def _plot_grouped_bar_axis(self, ax, x_positions, x_labels, models, series, width,
+                               xlabel, ylabel, title):
+        for i, model in enumerate(models):
+            offsets = x_positions + (i - len(models) / 2 + 0.5) * width
+            values = series[model]
+            bars = ax.bar(offsets, values, width, label=model)
+            for bar in bars:
+                height = bar.get_height()
+                if not np.isnan(height):
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        height,
+                        f"{height:.3f}",
+                        ha="center",
+                        va="bottom",
+                        fontsize=7,
+                        rotation=90,
+                    )
+
+        ax.set_xticks(x_positions)
+        ax.set_xticklabels([f"{val:.1f}" for val in x_labels])
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.grid(True, axis="y")
+        ax.legend()
+
     def _plot_sweep_axis(self, ax, x_values, series, xlabel, ylabel, title):
         for label, values in series.items():
             ax.plot(x_values, values, marker="o", linestyle="-", label=label)
